@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/mazzegi/log"
-	"golang.org/x/exp/slices"
 )
 
 type (
@@ -42,6 +41,7 @@ type Class struct {
 	Subject      SubjectID
 	Teacher      TeacherID
 	Students     []StudentID
+	studentSet   *Set[StudentID]
 }
 
 type Schedule struct {
@@ -120,34 +120,40 @@ func (ss *Schedules) Hash() string {
 // 	return strings.Join(sl, ":")
 // }
 
-func StudentsIntersect(st1, st2 []StudentID) bool {
-	for _, s1 := range st1 {
-		if slices.Contains(st2, s1) {
-			return true
-		}
-	}
-	return false
-}
+// func StudentsIntersect(st1, st2 []StudentID) bool {
+// 	for _, s1 := range st1 {
+// 		if slices.Contains(st2, s1) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 // Config
 
 func NewConfiguration(sds *Schedules) *Configuration {
-	return &Configuration{
-		Schedules: sds,
-		Subjects:  make(map[SubjectID]*Subject),
-		Teachers:  make(map[TeacherID]*Teacher),
-		Classes:   make(map[ClassID]*Class),
+	cfg := &Configuration{
+		Schedules:      sds,
+		ScheduleHashes: make(map[Schedule]string),
+		Subjects:       make(map[SubjectID]*Subject),
+		Teachers:       make(map[TeacherID]*Teacher),
+		Classes:        make(map[ClassID]*Class),
 	}
+	for _, s := range cfg.Schedules.Values {
+		cfg.ScheduleHashes[s] = s.Hash()
+	}
+	return cfg
 }
 
 type Configuration struct {
-	Schedules  *Schedules
-	Subjects   map[SubjectID]*Subject
-	Teachers   map[TeacherID]*Teacher
-	Classes    map[ClassID]*Class
-	SubjectIDs []SubjectID
-	TeacherIDs []TeacherID
-	ClassIDs   []ClassID
+	Schedules      *Schedules
+	ScheduleHashes map[Schedule]string
+	Subjects       map[SubjectID]*Subject
+	Teachers       map[TeacherID]*Teacher
+	Classes        map[ClassID]*Class
+	SubjectIDs     []SubjectID
+	TeacherIDs     []TeacherID
+	ClassIDs       []ClassID
 }
 
 func (c *Configuration) AddSubjects(sbs ...*Subject) error {
@@ -177,6 +183,8 @@ func (c *Configuration) AddClasses(cls ...*Class) error {
 		if _, ok := c.Classes[cl.ID]; ok {
 			return fmt.Errorf("class with id %q already exists", cl.ID)
 		}
+		cl.studentSet = NewSet(cl.Students...)
+
 		c.Classes[cl.ID] = cl
 		c.ClassIDs = append(c.ClassIDs, cl.ID)
 	}

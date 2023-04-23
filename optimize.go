@@ -10,7 +10,10 @@ func ClassesConflict(cs1, cs2 *Class) bool {
 	if cs1.Teacher == cs2.Teacher {
 		return true
 	}
-	if StudentsIntersect(cs1.Students, cs2.Students) {
+	// if StudentsIntersect(cs1.Students, cs2.Students) {
+	// 	return true
+	// }
+	if cs1.studentSet.Intersects(cs2.studentSet) {
 		return true
 	}
 	return false
@@ -110,7 +113,7 @@ func Step(cfg *Configuration, tt *Timetable, badCache map[string]bool, depth int
 func Optimize(cfg *Configuration) (*Timetable, TimetableRating) {
 	badCache := map[string]bool{}
 
-	tt := NewTimetable(cfg.ClassIDs)
+	tt := NewTimetable(cfg)
 	newtt, ret := Step(cfg, tt, badCache, 1)
 	if !ret {
 		return nil, TimetableInvalid
