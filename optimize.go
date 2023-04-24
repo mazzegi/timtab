@@ -7,6 +7,7 @@ import (
 )
 
 func ClassesConflict(cs1, cs2 *Class) bool {
+	//OPT: Class conflicts may be pre-compiled by config
 	if cs1.Teacher == cs2.Teacher {
 		return true
 	}
@@ -46,7 +47,7 @@ func FindFreeSchedulesForClass(cid ClassID, cfg *Configuration, tt *Timetable) [
 func FindClassesWithToLessHours(cfg *Configuration, tt *Timetable) []ClassID {
 	var css []ClassID
 	for _, cid := range cfg.ClassIDs {
-		if ClassHours(cfg, tt, cid) < cfg.MustClass(cid).HoursPerWeek {
+		if FindClassHours(cfg, tt, cid) < cfg.MustClass(cid).HoursPerWeek {
 			css = append(css, cid)
 		}
 	}
@@ -55,7 +56,7 @@ func FindClassesWithToLessHours(cfg *Configuration, tt *Timetable) []ClassID {
 
 func FindFirstClassWithToLessHours(cfg *Configuration, tt *Timetable) (ClassID, int, int, bool) {
 	for _, cid := range cfg.ClassIDs {
-		ch := ClassHours(cfg, tt, cid)
+		ch := FindClassHours(cfg, tt, cid)
 		hpw := cfg.MustClass(cid).HoursPerWeek
 		if ch < hpw {
 			return cid, ch, hpw, true
