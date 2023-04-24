@@ -70,7 +70,7 @@ func Dump(cfg *Configuration, tt *Timetable) {
 		css := ClassesAt(cfg, tt, sc)
 		var sl []string
 		for _, cs := range css {
-			sl = append(sl, fmt.Sprintf("%s", cs.ID))
+			sl = append(sl, string(cs.ID))
 		}
 		sort.Strings(sl)
 		fmt.Printf("at %d-%d: %s\n", sc.Day, sc.Hour, strings.Join(sl, ", "))
