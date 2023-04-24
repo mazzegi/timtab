@@ -17,6 +17,8 @@ func main() {
 
 	fmt.Printf("start optimizing ...\n")
 	cfg := simpleConfig()
+	cfg.Prepare()
+
 	t0 := time.Now()
 	table, rating := timtab.Optimize(cfg)
 	fmt.Printf("time: %s\n", time.Since(t0))

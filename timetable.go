@@ -67,13 +67,8 @@ func RateTimetable(cfg *Configuration, tt *Timetable) TimetableRating {
 	return TimetableInvalid
 }
 
-func ClassesAt(cfg *Configuration, tt *Timetable, sched Schedule) []*Class {
-	cids := tt.ScheduleClasses[sched]
-	css := make([]*Class, len(cids))
-	for i, cid := range cids {
-		css[i] = cfg.MustClass(cid)
-	}
-	return css
+func ClassesAt(cfg *Configuration, tt *Timetable, sched Schedule) []ClassID {
+	return tt.ScheduleClasses[sched]
 }
 
 func FindClassHours(cfg *Configuration, tt *Timetable, cid ClassID) int {

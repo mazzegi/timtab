@@ -6,26 +6,23 @@ import (
 	"strings"
 )
 
-func ClassesConflict(cs1, cs2 *Class) bool {
-	//OPT: Class conflicts may be pre-compiled by config
-	if cs1.Teacher == cs2.Teacher {
-		return true
-	}
-	// if StudentsIntersect(cs1.Students, cs2.Students) {
-	// 	return true
-	// }
-	if cs1.studentSet.Intersects(cs2.studentSet) {
-		return true
-	}
-	return false
-}
+// func ClassesConflict(cs1, cs2 *Class) bool {
+// 	//OPT: Class conflicts may be pre-compiled by config
+// 	if cs1.Teacher == cs2.Teacher {
+// 		return true
+// 	}
+// 	// if StudentsIntersect(cs1.Students, cs2.Students) {
+// 	// 	return true
+// 	// }
+// 	if cs1.studentSet.Intersects(cs2.studentSet) {
+// 		return true
+// 	}
+// 	return false
+// }
 
-func ClassConflictsWithAny(cl *Class, css ...*Class) bool {
-	for _, cs := range css {
-		if cs.ID == cl.ID {
-			return true
-		}
-		if ClassesConflict(cl, cs) {
+func ClassConflictsWithAnyOf(cid ClassID, cfg *Configuration, cids ...ClassID) bool {
+	for _, acid := range cids {
+		if cfg.ClassesConflict(cid, acid) {
 			return true
 		}
 	}
@@ -33,11 +30,10 @@ func ClassConflictsWithAny(cl *Class, css ...*Class) bool {
 }
 
 func FindFreeSchedulesForClass(cid ClassID, cfg *Configuration, tt *Timetable) []Schedule {
-	cl := cfg.MustClass(cid)
-	var scheds []Schedule
+	scheds := make([]Schedule, 0, len(cfg.Schedules.Values))
 	for _, sched := range cfg.Schedules.Values {
 		css := ClassesAt(cfg, tt, sched)
-		if !ClassConflictsWithAny(cl, css...) {
+		if !ClassConflictsWithAnyOf(cid, cfg, css...) {
 			scheds = append(scheds, sched)
 		}
 	}
@@ -71,7 +67,7 @@ func Dump(cfg *Configuration, tt *Timetable) {
 		css := ClassesAt(cfg, tt, sc)
 		var sl []string
 		for _, cs := range css {
-			sl = append(sl, string(cs.ID))
+			sl = append(sl, string(cs))
 		}
 		sort.Strings(sl)
 		fmt.Printf("at %d-%d: %s\n", sc.Day, sc.Hour, strings.Join(sl, ", "))
