@@ -2,25 +2,46 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"runtime/pprof"
 	"time"
 
-	"net/http"
-	_ "net/http/pprof"
+	//_ "net/http/pprof"
 
 	"github.com/mazzegi/timtab"
 )
 
+const profile = true
+
 func main() {
-	go func() {
-		http.ListenAndServe("localhost:6060", nil)
-	}()
+	// go func() {
+	// 	http.ListenAndServe("localhost:6060", nil)
+	// }()
+	var pw io.Writer
+	if profile {
+		f, err := os.Create("timtab.prof")
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		pw = f
+	}
 
 	fmt.Printf("start optimizing ...\n")
 	cfg := simpleConfig()
 	cfg.Prepare()
 
 	t0 := time.Now()
+
+	if profile {
+		pprof.StartCPUProfile(pw)
+	}
 	table, rating := timtab.Optimize(cfg)
+	if profile {
+		pprof.StopCPUProfile()
+	}
+
 	fmt.Printf("time: %s\n", time.Since(t0))
 	fmt.Printf("rating: %v\n", rating)
 	fmt.Printf("schedules:\n")
