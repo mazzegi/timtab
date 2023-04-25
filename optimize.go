@@ -29,15 +29,15 @@ func ClassConflictsWithAnyOf(cid ClassID, cfg *Configuration, cids ...ClassID) b
 	return false
 }
 
-func FindFreeSchedulesForClass(cid ClassID, cfg *Configuration, tt *Timetable) []Schedule {
-	scheds := make([]Schedule, 0, len(cfg.Schedules.Values))
-	for _, sched := range cfg.Schedules.Values {
-		css := ClassesAt(cfg, tt, sched)
+func FindFreeSchedulesForClass(cid ClassID, cfg *Configuration, tt *Timetable) []int {
+	sdidxs := make([]int, 0, len(cfg.Schedules.Values))
+	for sdidx := range cfg.Schedules.Values {
+		css := ClassesAt(cfg, tt, sdidx)
 		if !ClassConflictsWithAnyOf(cid, cfg, css...) {
-			scheds = append(scheds, sched)
+			sdidxs = append(sdidxs, sdidx)
 		}
 	}
-	return scheds
+	return sdidxs
 }
 
 func FindClassesWithToLessHours(cfg *Configuration, tt *Timetable) []ClassID {
@@ -63,8 +63,8 @@ func FindFirstClassWithToLessHours(cfg *Configuration, tt *Timetable) (ClassID, 
 
 func Dump(cfg *Configuration, tt *Timetable) {
 	fmt.Printf("###### DUMP ######\n")
-	for _, sc := range cfg.Schedules.Values {
-		cids := ClassesAt(cfg, tt, sc)
+	for sdidx, sc := range cfg.Schedules.Values {
+		cids := ClassesAt(cfg, tt, sdidx)
 		var sl []string
 		for _, cid := range cids {
 			sl = append(sl, cfg.MustClass(cid).Name)
@@ -83,14 +83,14 @@ func Step(cfg *Configuration, tt *Timetable, badCache map[string]bool, depth int
 	_ = hours
 	_ = hpw
 
-	scheds := FindFreeSchedulesForClass(cid, cfg, tt)
-	if len(scheds) == 0 {
+	sdidxs := FindFreeSchedulesForClass(cid, cfg, tt)
+	if len(sdidxs) == 0 {
 		//Dump(cfg, tt)
 		return nil, false
 	}
-	for _, sched := range scheds {
+	for _, sdidx := range sdidxs {
 		ctt := tt.Clone()
-		ctt.AddClassSchedule(cid, sched)
+		ctt.AddClassSchedule(cfg, cid, sdidx)
 		hash := HashTimetable(cfg, ctt)
 		if badCache[hash] {
 			continue
