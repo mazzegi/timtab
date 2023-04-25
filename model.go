@@ -134,12 +134,11 @@ func (ss *Schedules) Hash() string {
 
 func NewConfiguration(sds *Schedules) *Configuration {
 	cfg := &Configuration{
-		Schedules:             sds,
-		ScheduleHashes:        make(map[Schedule]string),
-		Subjects:              make(map[SubjectID]*Subject),
-		Teachers:              make(map[TeacherID]*Teacher),
-		Classes:               make(map[ClassID]*Class),
-		ConflictingClassPairs: NewSet[classPair](),
+		Schedules:      sds,
+		ScheduleHashes: make(map[Schedule]string),
+		Subjects:       make(map[SubjectID]*Subject),
+		Teachers:       make(map[TeacherID]*Teacher),
+		Classes:        make(map[ClassID]*Class),
 	}
 	for _, s := range cfg.Schedules.Values {
 		cfg.ScheduleHashes[s] = s.Hash()
@@ -147,29 +146,26 @@ func NewConfiguration(sds *Schedules) *Configuration {
 	return cfg
 }
 
-type classPair struct {
-	c1, c2 ClassID
-}
-
 type Configuration struct {
-	Schedules             *Schedules
-	ScheduleHashes        map[Schedule]string
-	Subjects              map[SubjectID]*Subject
-	Teachers              map[TeacherID]*Teacher
-	Classes               map[ClassID]*Class
-	SubjectIDs            []SubjectID
-	TeacherIDs            []TeacherID
-	ClassIDs              []ClassID
-	ConflictingClassPairs *Set[classPair]
+	Schedules                 *Schedules
+	ScheduleHashes            map[Schedule]string
+	Subjects                  map[SubjectID]*Subject
+	Teachers                  map[TeacherID]*Teacher
+	Classes                   map[ClassID]*Class
+	SubjectIDs                []SubjectID
+	TeacherIDs                []TeacherID
+	ClassIDs                  []ClassID
+	ConflictingClassPairBytes []byte
 }
 
 func (c *Configuration) Prepare() {
+	c.ConflictingClassPairBytes = make([]byte, len(c.Classes)*len(c.Classes))
 	for _, c1 := range c.Classes {
 		for _, c2 := range c.Classes {
 			if c1.ID == c2.ID ||
 				c1.Teacher == c2.Teacher ||
 				c1.studentSet.Intersects(c2.studentSet) {
-				c.ConflictingClassPairs.Insert(classPair{c1.ID, c2.ID})
+				c.ConflictingClassPairBytes[int(c1.ID)*len(c.Classes)+int(c2.ID)] = 1
 			}
 
 		}
@@ -177,7 +173,7 @@ func (c *Configuration) Prepare() {
 }
 
 func (c *Configuration) ClassesConflict(c1, c2 ClassID) bool {
-	return c.ConflictingClassPairs.Contains(classPair{c1, c2})
+	return c.ConflictingClassPairBytes[int(c1)*len(c.Classes)+int(c2)] == 1
 }
 
 func (c *Configuration) AddSubjects(sbs ...*Subject) error {
