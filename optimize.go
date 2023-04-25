@@ -6,34 +6,10 @@ import (
 	"strings"
 )
 
-// func ClassesConflict(cs1, cs2 *Class) bool {
-// 	//OPT: Class conflicts may be pre-compiled by config
-// 	if cs1.Teacher == cs2.Teacher {
-// 		return true
-// 	}
-// 	// if StudentsIntersect(cs1.Students, cs2.Students) {
-// 	// 	return true
-// 	// }
-// 	if cs1.studentSet.Intersects(cs2.studentSet) {
-// 		return true
-// 	}
-// 	return false
-// }
-
-func ClassConflictsWithAnyOf(cid ClassID, cfg *Configuration, cids ...ClassID) bool {
-	for _, acid := range cids {
-		if cfg.ClassesConflict(cid, acid) {
-			return true
-		}
-	}
-	return false
-}
-
 func FindFreeSchedulesForClass(cid ClassID, cfg *Configuration, tt *Timetable) []int {
 	sdidxs := make([]int, 0, len(cfg.Schedules.Values))
 	for sdidx := range cfg.Schedules.Values {
-		css := ClassesAt(cfg, tt, sdidx)
-		if !ClassConflictsWithAnyOf(cid, cfg, css...) {
+		if !ClassConflictsWithAnyInSched(cfg, tt, cid, sdidx) {
 			sdidxs = append(sdidxs, sdidx)
 		}
 	}
@@ -74,7 +50,8 @@ func Dump(cfg *Configuration, tt *Timetable) {
 	}
 }
 
-func Step(cfg *Configuration, tt *Timetable, badCache map[string]bool, depth int) (*Timetable, bool) {
+func Step(cfg *Configuration, tt *Timetable, badCache map[string]bool, depth int, steps *int) (*Timetable, bool) {
+	(*steps)++
 	cid, hours, hpw, ok := FindFirstClassWithToLessHours(cfg, tt)
 	if !ok {
 		//this is fine - all classes have sufficient hours - done
@@ -96,7 +73,7 @@ func Step(cfg *Configuration, tt *Timetable, badCache map[string]bool, depth int
 			continue
 		}
 
-		newtt, ok := Step(cfg, ctt, badCache, depth+1)
+		newtt, ok := Step(cfg, ctt, badCache, depth+1, steps)
 		if ok {
 			return newtt, true
 		} else {
@@ -111,9 +88,11 @@ func Optimize(cfg *Configuration) (*Timetable, TimetableRating) {
 	badCache := map[string]bool{}
 
 	tt := NewTimetable(cfg)
-	newtt, ret := Step(cfg, tt, badCache, 1)
+	var steps int
+	newtt, ret := Step(cfg, tt, badCache, 1, &steps)
 	if !ret {
 		return nil, TimetableInvalid
 	}
+	fmt.Printf("done in %d steps\n", steps)
 	return newtt, 1
 }

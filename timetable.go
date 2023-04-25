@@ -67,6 +67,17 @@ func ClassesAt(cfg *Configuration, tt *Timetable, sdidx int) []ClassID {
 	return css
 }
 
+func ClassConflictsWithAnyInSched(cfg *Configuration, tt *Timetable, cid ClassID, sdidx int) bool {
+	off := sdidx * len(cfg.ClassIDs)
+	for i := 0; i < len(cfg.ClassIDs); i++ {
+		if tt.ScheduleClassesBytes[off+i] > 0 &&
+			cfg.ClassesConflict(cid, ClassID(i)) {
+			return true
+		}
+	}
+	return false
+}
+
 func FindClassHours(cfg *Configuration, tt *Timetable, cid ClassID) int {
 	return int(tt.ClassHoursBytes[cid])
 }

@@ -12,7 +12,8 @@ import (
 	"github.com/mazzegi/timtab"
 )
 
-const profile = true
+// const profile = true
+const profile = false
 
 func main() {
 	// go func() {
