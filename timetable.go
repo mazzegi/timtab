@@ -1,6 +1,7 @@
 package timtab
 
 import (
+	"fmt"
 	"strings"
 
 	"golang.org/x/exp/slices"
@@ -34,12 +35,15 @@ type Timetable struct {
 func HashTimetable(cfg *Configuration, tt *Timetable) string {
 	//OPT: guess len
 	var sb strings.Builder
-	sb.Grow(len(cfg.Schedules.Values) * (3 + len(cfg.ClassIDs)/2))
+	sb.Grow(len(cfg.Schedules.Values) * (3 + len(cfg.ClassIDs)))
 	for _, s := range cfg.Schedules.Values {
 		sb.WriteString(cfg.ScheduleHashes[s])
-		for _, cid := range tt.ScheduleClasses[s] {
-			sb.WriteString(string(cid))
-		}
+		// -- write classids is the killer
+		// - IDEA: make scheduleclasses a flat thing (one byte array) with constant lookup time and cheap copying resp. hashing
+		sb.WriteString(fmt.Sprint(tt.ScheduleClasses[s]))
+		// for _, cid := range tt.ScheduleClasses[s] {
+		// 	sb.WriteString(string(cid))
+		// }
 	}
 	return sb.String()
 }

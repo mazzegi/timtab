@@ -87,7 +87,7 @@ func simpleConfig() *timtab.Configuration {
 func mkClass(level int, hours int, subject string, teacher string, sts []timtab.StudentID) *timtab.Class {
 	name := fmt.Sprintf("%02d_%s_%s", level, subject, teacher)
 	return &timtab.Class{
-		ID:           timtab.ClassID(name),
+		//ID:           timtab.ClassID(name),
 		Level:        level,
 		HoursPerWeek: hours,
 		Name:         name,

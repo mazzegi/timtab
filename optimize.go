@@ -58,16 +58,16 @@ func FindFirstClassWithToLessHours(cfg *Configuration, tt *Timetable) (ClassID, 
 			return cid, ch, hpw, true
 		}
 	}
-	return "", -1, -1, false
+	return -1, -1, -1, false
 }
 
 func Dump(cfg *Configuration, tt *Timetable) {
 	fmt.Printf("###### DUMP ######\n")
 	for _, sc := range cfg.Schedules.Values {
-		css := ClassesAt(cfg, tt, sc)
+		cids := ClassesAt(cfg, tt, sc)
 		var sl []string
-		for _, cs := range css {
-			sl = append(sl, string(cs))
+		for _, cid := range cids {
+			sl = append(sl, cfg.MustClass(cid).Name)
 		}
 		sort.Strings(sl)
 		fmt.Printf("at %d-%d: %s\n", sc.Day, sc.Hour, strings.Join(sl, ", "))

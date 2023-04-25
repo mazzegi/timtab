@@ -12,9 +12,10 @@ type (
 	SubjectID string
 	StudentID string
 	TeacherID string
-	ClassID   string
-	Day       int //1..5; Mo..Fr
-	Hour      int //1..10
+	//ClassID   string
+	ClassID int
+	Day     int //1..5; Mo..Fr
+	Hour    int //1..10
 )
 
 type Subject struct {
@@ -203,9 +204,8 @@ func (c *Configuration) AddTeachers(ts ...*Teacher) error {
 
 func (c *Configuration) AddClasses(cls ...*Class) error {
 	for _, cl := range cls {
-		if _, ok := c.Classes[cl.ID]; ok {
-			return fmt.Errorf("class with id %q already exists", cl.ID)
-		}
+		id := len(c.Classes)
+		cl.ID = ClassID(id)
 		cl.studentSet = NewSet(cl.Students...)
 
 		c.Classes[cl.ID] = cl
