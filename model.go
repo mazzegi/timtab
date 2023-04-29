@@ -42,7 +42,7 @@ type Class struct {
 	Subject      SubjectID
 	Teacher      TeacherID
 	Students     []StudentID
-	studentSet   *Set[StudentID]
+	StudentSet   *Set[StudentID]
 }
 
 type Schedule struct {
@@ -164,7 +164,7 @@ func (c *Configuration) Prepare() {
 		for _, c2 := range c.Classes {
 			if c1.ID == c2.ID ||
 				c1.Teacher == c2.Teacher ||
-				c1.studentSet.Intersects(c2.studentSet) {
+				c1.StudentSet.Intersects(c2.StudentSet) {
 				c.ConflictingClassPairBytes[int(c1.ID)*len(c.Classes)+int(c2.ID)] = 1
 			}
 
@@ -202,7 +202,7 @@ func (c *Configuration) AddClasses(cls ...*Class) error {
 	for _, cl := range cls {
 		id := len(c.Classes)
 		cl.ID = ClassID(id)
-		cl.studentSet = NewSet(cl.Students...)
+		cl.StudentSet = NewSet(cl.Students...)
 
 		c.Classes[cl.ID] = cl
 		c.ClassIDs = append(c.ClassIDs, cl.ID)

@@ -1,4 +1,4 @@
-package timtab
+package bitset
 
 import (
 	"reflect"
@@ -14,7 +14,7 @@ func assertEqual(t *testing.T, want, have any) {
 
 func TestBitset(t *testing.T) {
 
-	bs := NewBitset(8)
+	bs := New(8)
 	bs.Set(2, true)
 	bs.Set(4, true)
 	bs.Set(6, true)

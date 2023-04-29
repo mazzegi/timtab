@@ -1,17 +1,11 @@
-package timtab
+package bitset
 
 import (
 	"bytes"
 	"strings"
 )
 
-/*
-0 		-> 	0
-1..8	->  1
-9..16	->  2
-*/
-
-func NewBitset(size int) Bitset {
+func New(size int) Bitset {
 	if size <= 0 {
 		return nil
 	}

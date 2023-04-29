@@ -2,6 +2,8 @@ package timtab
 
 import (
 	"bytes"
+
+	"github.com/mazzegi/timtab/bitset"
 )
 
 type TimetableRating float64
@@ -14,14 +16,14 @@ func NewTimetable(cfg *Configuration) *Timetable {
 	schedCount := len(cfg.Schedules.Values)
 
 	tt := &Timetable{
-		ScheduleClassesBitset: NewBitset(schedCount * len(cfg.ClassIDs)),
+		ScheduleClassesBitset: bitset.New(schedCount * len(cfg.ClassIDs)),
 		ClassHoursBytes:       make([]byte, len(cfg.ClassIDs)),
 	}
 	return tt
 }
 
 type Timetable struct {
-	ScheduleClassesBitset Bitset
+	ScheduleClassesBitset bitset.Bitset
 	ClassHoursBytes       []byte
 }
 
