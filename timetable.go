@@ -14,41 +14,31 @@ func NewTimetable(cfg *Configuration) *Timetable {
 	schedCount := len(cfg.Schedules.Values)
 
 	tt := &Timetable{
-		ScheduleClassesBytes: make([]byte, schedCount*len(cfg.ClassIDs)),
-		//ClassHours:           make(map[ClassID]int),
-		ClassHoursBytes: make([]byte, len(cfg.ClassIDs)),
+		ScheduleClassesBitset: NewBitset(schedCount * len(cfg.ClassIDs)),
+		ClassHoursBytes:       make([]byte, len(cfg.ClassIDs)),
 	}
-	// s
-	// for _, cid := range cfg.ClassIDs {
-	// 	tt.ClassHours[cid] = 0
-	// }
 	return tt
 }
 
 type Timetable struct {
-	ScheduleClassesBytes []byte
-	//ClassHours           map[ClassID]int
-	ClassHoursBytes []byte
+	ScheduleClassesBitset Bitset
+	ClassHoursBytes       []byte
 }
 
 func HashTimetable(cfg *Configuration, tt *Timetable) string {
-	return string(tt.ScheduleClassesBytes)
+	return string(tt.ScheduleClassesBitset)
 }
 
 func (tt *Timetable) Clone() *Timetable {
 	newtt := &Timetable{
-		ScheduleClassesBytes: bytes.Clone(tt.ScheduleClassesBytes),
-		ClassHoursBytes:      bytes.Clone(tt.ClassHoursBytes),
-		//ClassHours:           make(map[ClassID]int, len(tt.ClassHours)),
+		ScheduleClassesBitset: tt.ScheduleClassesBitset.Clone(),
+		ClassHoursBytes:       bytes.Clone(tt.ClassHoursBytes),
 	}
-	// for cid, hs := range tt.ClassHours {
-	// 	newtt.ClassHours[cid] = hs
-	// }
 	return newtt
 }
 
 func (tt *Timetable) AddClassSchedule(cfg *Configuration, cid ClassID, sdidx int) {
-	tt.ScheduleClassesBytes[sdidx*len(cfg.ClassIDs)+int(cid)] = 1
+	tt.ScheduleClassesBitset.Set(sdidx*len(cfg.ClassIDs)+int(cid), true)
 	tt.ClassHoursBytes[cid]++
 }
 
@@ -60,7 +50,7 @@ func ClassesAt(cfg *Configuration, tt *Timetable, sdidx int) []ClassID {
 	css := make([]ClassID, 0, len(cfg.ClassIDs))
 	off := sdidx * len(cfg.ClassIDs)
 	for i := 0; i < len(cfg.ClassIDs); i++ {
-		if tt.ScheduleClassesBytes[off+i] > 0 {
+		if tt.ScheduleClassesBitset.Get(off + i) {
 			css = append(css, ClassID(i))
 		}
 	}
@@ -70,7 +60,7 @@ func ClassesAt(cfg *Configuration, tt *Timetable, sdidx int) []ClassID {
 func ClassConflictsWithAnyInSched(cfg *Configuration, tt *Timetable, cid ClassID, sdidx int) bool {
 	off := sdidx * len(cfg.ClassIDs)
 	for i := 0; i < len(cfg.ClassIDs); i++ {
-		if tt.ScheduleClassesBytes[off+i] > 0 &&
+		if tt.ScheduleClassesBitset.Get(off+i) &&
 			cfg.ClassesConflict(cid, ClassID(i)) {
 			return true
 		}
