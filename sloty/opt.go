@@ -13,39 +13,46 @@ func Optimize(cfg *Config) (*Table, error) {
 	return optt, nil
 }
 
-func Step(cfg *Config, t *Table, badCache map[string]bool) (*Table, bool) {
-	cid := -1
+func nextCard(cfg *Config, t *Table) int {
 	for ic := 0; ic < cfg.NumCards; ic++ {
 		if t.CardCounts[ic] < byte(cfg.cards[ic].Count) {
-			cid = ic
-			break
+			return ic
 		}
 	}
-	if cid < 0 {
-		// all classes assigned
-		return t, true
-	}
-	var freeSlots []int
+	return -1
+}
+
+func freeSlots(cfg *Config, t *Table, cid int) []int {
+	//fs := make([]int, 0, cfg.NumSlots)
+	var fs []int
 	for is := 0; is < cfg.NumSlots; is++ {
 		off := is * cfg.NumCards
 		free := true
-		//cas := t.CardsAtSlot(cfg, is)
 		for ic := 0; ic < cfg.NumCards; ic++ {
 			if t.SlotCards.Get(off+ic) && cfg.excludingCardMatrix.Get(cid*cfg.NumCards+ic) {
 				free = false
 				break
 			}
 		}
-		//_ = cas
 		if free {
-			freeSlots = append(freeSlots, is)
+			fs = append(fs, is)
 		}
 	}
-	if len(freeSlots) == 0 {
+	return fs
+}
+
+func Step(cfg *Config, t *Table, badCache map[string]bool) (*Table, bool) {
+	cid := nextCard(cfg, t)
+	if cid < 0 {
+		// all classes assigned
+		return t, true
+	}
+	free := freeSlots(cfg, t, cid)
+	if len(free) == 0 {
 		//RawDump(cfg, t)
 		return nil, false
 	}
-	for _, is := range freeSlots {
+	for _, is := range free {
 		ct := t.Clone()
 		ct.AddCardToSlot(cfg, cid, is)
 		hash := ct.Hash()

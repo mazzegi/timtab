@@ -17,9 +17,14 @@ import (
 
 //const profile = true
 
-const profile = false
+//const profile = false
 
 func main() {
+	profile := false
+	if sp := os.Getenv("PROFILE"); sp == "1" {
+		profile = true
+	}
+
 	// go func() {
 	// 	http.ListenAndServe("localhost:6060", nil)
 	// }()
